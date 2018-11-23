@@ -14,6 +14,7 @@ import qrcode from "../assets/qrcode.svg";
 import { notificationShow } from "../reducers/_notification";
 import { metaConnectionShow } from "../reducers/_metaConnection";
 import {
+  p2pRoomDirectConnect,
   p2pRoomSendMessage,
   p2pRoomRegisterListeners
 } from "../reducers/_p2pRoom";
@@ -125,7 +126,7 @@ const StyledTab = styled.div`
 let baseUrl =
   !process.env.NODE_ENV || process.env.NODE_ENV === "development"
     ? "http://" + window.location.host
-    : "https://metaconnect.me";
+    : "https://" + window.location.host;
 
 class Dashboard extends Component {
   state = {
@@ -186,6 +187,12 @@ class Dashboard extends Component {
     });
   };
 
+  establishNewMetaConnection = result => {
+    this.props.p2pRoomDirectConnect(result.multiaddrClass);
+    this.sendMetaConnection(result.peer);
+    this.openNewMetaConnection(result);
+  };
+
   sendMetaConnection(peer) {
     const metaConnection = generateNewMetaConnection({
       peer: this.props.userId,
@@ -196,16 +203,16 @@ class Dashboard extends Component {
   }
 
   generateQRCodeURI = () => {
-    const { userId } = this.props;
     const name = encodeURIComponent(this.props.name);
+    const multiaddr = encodeURIComponent(this.props.multiaddr);
     const socialMedia = encodeURIComponent(
       JSON.stringify(this.props.socialMedia)
     );
     let uri = "";
-    if (userId) {
-      uri = `${baseUrl}?id=${userId}&name=${name}&socialMedia=${socialMedia}`;
+    if (multiaddr) {
+      uri = `${baseUrl}?multiaddr=${multiaddr}&name=${name}&socialMedia=${socialMedia}`;
+      console.log("uri", uri);
     }
-
     return uri;
   };
 
@@ -228,8 +235,7 @@ class Dashboard extends Component {
     const result = handleMetaConnectionURI(string);
     if (result) {
       this.toggleQRCodeScanner();
-      this.sendMetaConnection(result.peer);
-      this.openNewMetaConnection(result);
+      this.establishNewMetaConnection(result);
     }
   };
 
@@ -316,6 +322,7 @@ class Dashboard extends Component {
 Dashboard.propTypes = {
   metaConnectionShow: PropTypes.func.isRequired,
   notificationShow: PropTypes.func.isRequired,
+  p2pRoomDirectConnect: PropTypes.func.isRequired,
   p2pRoomSendMessage: PropTypes.func.isRequired,
   p2pRoomRegisterListeners: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
@@ -323,6 +330,7 @@ Dashboard.propTypes = {
   metaConnections: PropTypes.object.isRequired,
   loading: PropTypes.bool.isRequired,
   connected: PropTypes.bool.isRequired,
+  multiaddr: PropTypes.string.isRequired,
   userId: PropTypes.string.isRequired
 };
 
@@ -332,6 +340,7 @@ const reduxProps = ({ account, p2pRoom }) => ({
   metaConnections: account.metaConnections,
   loading: p2pRoom.loading,
   connected: p2pRoom.connected,
+  multiaddr: p2pRoom.multiaddr,
   userId: p2pRoom.userId
 });
 
@@ -340,6 +349,7 @@ export default connect(
   {
     metaConnectionShow,
     notificationShow,
+    p2pRoomDirectConnect,
     p2pRoomSendMessage,
     p2pRoomRegisterListeners
   }

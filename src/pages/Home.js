@@ -9,7 +9,7 @@ import Input from "../components/Input";
 import Button from "../components/Button";
 import { accountUpdateName } from "../reducers/_account";
 import { metaConnectionShow } from "../reducers/_metaConnection";
-import { p2pRoomSendMessage } from "../reducers/_p2pRoom";
+import { p2pRoomDirectConnect, p2pRoomSendMessage } from "../reducers/_p2pRoom";
 import {
   formatHandle,
   generateNewMetaConnection,
@@ -97,6 +97,7 @@ class Home extends Component {
         name,
         socialMedia
       });
+      this.props.p2pRoomDirectConnect(pendingMetaConnection.multiaddrClass);
       this.props.p2pRoomSendMessage(pendingMetaConnection.peer, metaConnection);
       this.props.metaConnectionShow(pendingMetaConnection);
     } else {
@@ -214,7 +215,12 @@ class Home extends Component {
 }
 
 Home.propTypes = {
-  accountUpdateName: PropTypes.func.isRequired
+  userId: PropTypes.string.isRequired,
+  metaConnectionName: PropTypes.string.isRequired,
+  accountUpdateName: PropTypes.func.isRequired,
+  metaConnectionShow: PropTypes.func.isRequired,
+  p2pRoomDirectConnect: PropTypes.func.isRequired,
+  p2pRoomSendMessage: PropTypes.func.isRequired
 };
 
 const reduxProps = ({ metaConnection, p2pRoom }) => ({
@@ -227,6 +233,7 @@ export default connect(
   {
     accountUpdateName,
     metaConnectionShow,
+    p2pRoomDirectConnect,
     p2pRoomSendMessage
   }
 )(Home);

@@ -1,3 +1,5 @@
+/* global Ipfs  */
+
 /**
  * @desc debounce api request
  * @param  {Function}  request
@@ -183,6 +185,17 @@ export function generateNewMetaConnection({ peer, name, socialMedia }) {
 }
 
 /**
+ * @desc get multiaddress class
+ * @param   {String}  [multiaddr]
+ * @return  {Object}
+ */
+export function getMultiaddrClass(multiaddr) {
+  const ipfs = new Ipfs();
+  const result = ipfs.types.multiaddr(multiaddr);
+  return result;
+}
+
+/**
  * @desc handle meta connection uri
  * @param  {String}  {string}
  * @return {String|Null}
@@ -194,10 +207,16 @@ export function handleMetaConnectionURI(string) {
     typeof pathEnd !== "undefined" ? string.substring(pathEnd) : "";
   let queryParams = parseQueryParams(queryString);
   if (Object.keys(queryParams).length) {
-    const peer = queryParams.id;
+    const multiaddrClass = getMultiaddrClass(queryParams.multiaddr);
+    const peer = multiaddrClass.getPeerId();
     const name = decodeURIComponent(queryParams.name);
     const socialMedia = JSON.parse(decodeURIComponent(queryParams.socialMedia));
-    result = generateNewMetaConnection({ peer, name, socialMedia });
+    result = generateNewMetaConnection({
+      multiaddrClass,
+      peer,
+      name,
+      socialMedia
+    });
   }
   return result;
 }

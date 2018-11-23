@@ -38,6 +38,11 @@ const p2pRoomUpdateLogs = log => (dispatch, getState) => {
   dispatch({ type: P2PROOM_UPDATE_LOGS, payload });
 };
 
+export const p2pRoomDirectConnect = multiaddrClass => (dispatch, getState) => {
+  const { ipfs } = getState().p2pRoom;
+  ipfs.swarm.connect(multiaddrClass);
+};
+
 export const p2pRoomInit = () => async (dispatch, getState) => {
   dispatch({ type: P2PROOM_INIT_REQUEST });
 
@@ -53,10 +58,11 @@ export const p2pRoomInit = () => async (dispatch, getState) => {
         throw err;
       }
       const userId = info.id;
+      const multiaddr = info.addresses[0];
       if (devMonitor) dispatch(p2pRoomUpdateLogs(`Connected as ${userId}`));
       dispatch({
         type: P2PROOM_INIT_SUCCESS,
-        payload: { ipfs, userId }
+        payload: { ipfs, userId, multiaddr }
       });
     });
 
@@ -152,6 +158,7 @@ const INITIAL_STATE = {
   room: null,
   loading: false,
   connected: false,
+  multiaddr: "",
   userId: "",
   logs: []
 };
@@ -170,6 +177,7 @@ export default (state = INITIAL_STATE, action) => {
         loading: false,
         connected: true,
         ipfs: action.payload.ipfs,
+        multiaddr: action.payload.multiaddr,
         userId: action.payload.userId
       };
     case P2PROOM_INIT_FAILURE:
@@ -193,6 +201,7 @@ export default (state = INITIAL_STATE, action) => {
         ...state,
         loading: false,
         connected: false,
+        multiaddr: "",
         userId: "",
         activePeers: []
       };
